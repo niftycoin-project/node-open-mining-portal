@@ -6,8 +6,21 @@ var async = require('async');
 
 var os = require('os');
 
-var algos = require('stratum-pool/lib/algoProperties.js');
-
+// var algos = require('stratum-pool/lib/algoProperties.js');
+var algos = {
+    'scrypt': {
+        //Uncomment diff if you want to use hardcoded truncated diff
+        //diff: '0000ffff00000000000000000000000000000000000000000000000000000000',
+        multiplier: Math.pow(2, 16),
+        hash: function(coinConfig){
+            var nValue = coinConfig.nValue || 1024;
+            var rValue = coinConfig.rValue || 1;
+            return function(data){
+                return -1;
+            }
+        }
+    }
+}
 
 module.exports = function(logger, portalConfig, poolConfigs){
 

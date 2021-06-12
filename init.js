@@ -8,12 +8,26 @@ var extend = require('extend');
 
 var PoolLogger = require('./libs/logUtil.js');
 var CliListener = require('./libs/cliListener.js');
-var PoolWorker = require('./libs/poolWorker.js');
-var PaymentProcessor = require('./libs/paymentProcessor.js');
+// var PoolWorker = require('./libs/poolWorker.js');
+// var PaymentProcessor = require('./libs/paymentProcessor.js');
 var Website = require('./libs/website.js');
-var ProfitSwitch = require('./libs/profitSwitch.js');
+// var ProfitSwitch = require('./libs/profitSwitch.js');
 
-var algos = require('stratum-pool/lib/algoProperties.js');
+// var algos = require('stratum-pool/lib/algoProperties.js');
+var algos = {
+    'scrypt': {
+        //Uncomment diff if you want to use hardcoded truncated diff
+        //diff: '0000ffff00000000000000000000000000000000000000000000000000000000',
+        multiplier: Math.pow(2, 16),
+        hash: function(coinConfig){
+            var nValue = coinConfig.nValue || 1024;
+            var rValue = coinConfig.rValue || 1;
+            return function(data){
+                return -1;
+            }
+        }
+    }
+}
 
 JSON.minify = JSON.minify || require("node-json-minify");
 
@@ -70,18 +84,18 @@ catch(e){
 if (cluster.isWorker){
 
     switch(process.env.workerType){
-        case 'pool':
-            new PoolWorker(logger);
-            break;
-        case 'paymentProcessor':
-            new PaymentProcessor(logger);
-            break;
+        // case 'pool':
+        //     new PoolWorker(logger);
+        //     break;
+        // case 'paymentProcessor':
+        //     new PaymentProcessor(logger);
+        //     break;
         case 'website':
             new Website(logger);
             break;
-        case 'profitSwitch':
-            new ProfitSwitch(logger);
-            break;
+        // case 'profitSwitch':
+        //     new ProfitSwitch(logger);
+        //     break;
     }
 
     return;

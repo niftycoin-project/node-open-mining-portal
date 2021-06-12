@@ -11,8 +11,20 @@ var express = require('express');
 var bodyParser = require('body-parser');
 var compress = require('compression');
 
-var Stratum = require('stratum-pool');
-var util = require('stratum-pool/lib/util.js');
+// var Stratum = require('stratum-pool');
+// var util = require('stratum-pool/lib/util.js');
+function DaemonInterface(daemons, logger) {
+    
+    var _this = this;
+    function cmd(method, params, callback, streamResults, returnRawData) { 
+        logger('debug', 'daemon cmd: ' + method + ': ' + params);
+    }
+    this.cmd = cmd;
+}
+const Stratum = {
+    daemon: {}
+};
+Stratum.daemon.interface = DaemonInterface;
 
 var api = require('./api.js');
 
@@ -95,7 +107,7 @@ module.exports = function(logger){
 
 
     //If an html file was changed reload it
-    watch('website', function(filename){
+    watch('website', { recursive: true }, function(evt, filename){
         var basename = path.basename(filename);
         if (basename in pageFiles){
             console.log(filename);
