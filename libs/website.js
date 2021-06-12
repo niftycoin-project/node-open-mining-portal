@@ -10,6 +10,7 @@ var dot = require('dot');
 var express = require('express');
 var bodyParser = require('body-parser');
 var compress = require('compression');
+var ampCors = require('amp-toolbox-cors');
 
 // var Stratum = require('stratum-pool');
 // var util = require('stratum-pool/lib/util.js');
@@ -45,16 +46,18 @@ module.exports = function(logger){
 
 
     var pageFiles = {
-        'index.html': 'index',
-        'home.html': '',
-        'getting_started.html': 'getting_started',
-        'stats.html': 'stats',
-        'tbs.html': 'tbs',
-        'workers.html': 'workers',
-        'api.html': 'api',
-        'admin.html': 'admin',
-        'mining_key.html': 'mining_key'
-    };
+		'index.html': 'index',
+		'home.html': '',
+		'getting-started.html': 'getting-started',
+		'graphs.html': 'graphs',
+		'statistics.html': 'statistics',
+		'workers.html': 'workers',
+		'api.html': 'api',
+		'admin.html': 'admin',
+		'mining-key.html': 'mining-key',
+		'miner-statistics.html': 'miner-statistics',
+		'payments.html': 'payments'
+	};
 
     var pageTemplates = {};
 
@@ -106,15 +109,22 @@ module.exports = function(logger){
     };
 
 
-    //If an html file was changed reload it
-    watch('website', { recursive: true }, function(evt, filename){
-        var basename = path.basename(filename);
-        if (basename in pageFiles){
-            console.log(filename);
-            readPageFiles([basename]);
-            logger.debug(logSystem, 'Server', 'Reloaded file ' + basename);
-        }
-    });
+    // if an html file was changed reload it
+	/* requires node-watch 0.5.0 or newer */
+	watch( ['./website', './website/pages'], function(evt, filename) {
+		var basename;
+		// support older versions of node-watch automatically
+		if ( !filename && evt ) {
+			basename = path.basename( evt );
+		} else {
+			basename = path.basename( filename );
+		}
+
+		if ( basename in pageFiles ) {
+			readPageFiles( [ basename ] );
+			logger.special( logSystem, 'Server', 'Reloaded file ' + basename );
+		}
+	} );
 
     portalStats.getGlobalStats(function(){
         readPageFiles(Object.keys(pageFiles));
@@ -238,12 +248,9 @@ module.exports = function(logger){
 
     };
 
-
-
     var app = express();
-
-
-    app.use(bodyParser.json());
+	app.use(ampCors());
+	app.use(bodyParser.json());
 
     app.get('/get_page', function(req, res, next){
         var requestedPage = getPage(req.query.id);
@@ -280,13 +287,17 @@ module.exports = function(logger){
 
     });
 
-    app.use(compress());
-    app.use('/static', express.static('website/static'));
+    express.static.mime.define( {
+		'text/plain': ['pub']
+	} );
+	app.use( '/', express.static( 'website/static' ) );
+	app.use( compress() );
+	app.use( '/static', express.static( 'website/static' ) );
 
-    app.use(function(err, req, res, next){
-        console.error(err.stack);
-        res.send(500, 'Something broke!');
-    });
+	app.use( function(err, req, res, next) {
+		console.error( err.stack );
+		res.send( 500, 'Something broke!' );
+	} );
 
     try {
         app.listen(portalConfig.website.port, portalConfig.website.host, function () {

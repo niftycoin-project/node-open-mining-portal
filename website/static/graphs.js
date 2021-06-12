@@ -126,42 +126,9 @@ function displayCharts(){
 }
 
 function TriggerChartUpdates(){
-	if ( currentPage === 'stats' ) {
-		poolWorkerChart.update();
-		poolHashrateChart.update();
-		poolBlockChart.update();
-	}
-}
-
-function showCoinConfig(info){
-	var htmlKeys = '<div class="coinInfoData">Algorithm:</div>';
-	var htmlValues = '<div class="coinInfoData">' + info['algo'] + '</div>';
-
-	for (var port in info['ports']){
-		var difficulty = 'Low';
-		switch( info['ports'][port]['diff'] ) {
-			case 8:
-			default:
-				break;
-			case 32:
-				difficulty = 'Med';
-				break;
-			case 256:
-				difficulty = 'High';
-				break;
-		}
-		htmlKeys += '<div class="coinInfoData">URL <span class="coinInfoSubtle">(' + difficulty + ')</span>:</div>';
-		htmlValues += '<div class="coinInfoData">stratum+tcp://' + info['host'] + ':' + port + '</div>';
-	}
-
-	if (info['coin']){
-		$('#coinInfoUsername').text('Your ' + info['coin']['name']['replace'](/(^([a-zA-Z\p{M}]))|([ -][a-zA-Z\p{M}])/g,function(s){return s.toUpperCase()}) + ' wallet address');
-	}else{
-		$('#coinInfoUsername').text('Your public key');
-	}
-	$('.coinInfoData').remove();
-	$('#coinInfoRowKeys').append(htmlKeys);
-	$('#coinInfoRowValues').append(htmlValues);
+	poolWorkerChart.update();
+	poolHashrateChart.update();
+	poolBlockChart.update();
 }
 
 var poolWorkerData;
@@ -175,112 +142,7 @@ var poolBlockChart;
 var statData;
 var poolKeys;
 
-var currentPage = location.pathname.substr(1) || 'home';
-
 $(function() {
-	var hotSwap = function(page, pushSate){
-		var title = 'NiftyCoin Pool';
-
-		switch ( page ) {
-			case 'getting-started':
-				title = 'Getting Started - ' + title;
-				break;
-			case 'stats':
-				title = 'Graphs - ' + title;
-				break;
-			case 'tbs':
-				title = 'Statistics - ' + title;
-				break;
-			case 'workers':
-				title = 'Workers - ' + title;
-				break;
-			case 'api':
-				title = 'API - ' + title;
-				break;
-			case '':
-			default:
-				break;
-		}
-
-		if (pushSate) {
-			history.pushState({
-				'oldPage': location.pathname.slice(1)
-			}, title, '/' + page);
-		}
-		document.title = title;
-
-		$('.menu-selected')['removeClass']('menu-selected');
-		$('a[href="/' + page + '"]')['parent']()['addClass']('menu-selected');
-		$.get('/get-page', {'id': page}, function(data){
-			$('main').html(data);
-
-			if (page === 'stats') {
-				buildChartData();
-				displayCharts();
-			}
-			currentPage = page || 'home';
-		}, 'html');
-	};
-
-	document.addEventListener('click', function(event) {
-		if (event.which !== 1) return;
-
-		var $target = $(event.target);
-		if ($target.hasClass('hamburger')) {
-			// Prevent screwy loops caused by the AMP sidebar
-			history.pushState(null, document.title, location.pathname);
-		}
-	}, true);
-
-	document.addEventListener('click', function(event) {
-		if (event.which !== 1) return;
-
-		var $target = $(event.target);
-		if ($target.hasClass( 'hot-swapper')) {
-			if ( typeof history.state['oldPage'] === 'undefined' ) {
-				// Close the AMP sidebar
-				$('amp-sidebar button.i-amphtml-screen-reader')[0].click();
-				history.forward();
-			}
-			var pageId = $target.attr('href').slice(1);
-			hotSwap(pageId, true);
-			event.preventDefault();
-			event.stopPropagation();
-			return false;
-		}
-	}, true);
-
-	$(document).on('click', '#coinGlowTrigger', function(event){
-		event.preventDefault();
-		$('.menuList').addClass('glow');
-		setTimeout(function(){
-			$('.menuList').removeClass('glow');
-		}, 200);
-		return false;
-	}).on('click', '.poolOption', function(event){
-		event.preventDefault();
-		showCoinConfig($(this).data('info'));
-		$('#coinInfoBackground,#coinInfo').removeClass('hidden');
-		$('#coinInfoBackground').addClass('display');
-		return false;
-	}).on('click', '#coinInfoBackground,#coinInfoClose', function(event){
-		event.preventDefault();
-		$('#coinInfoBackground,#coinInfo').addClass('hidden');
-		$('#coinInfoBackground').removeClass('display');
-		return false;
-	});
-
-	window.addEventListener('load', function() {
-		setTimeout(function() {
-			hotSwap(location.pathname.slice(1), false);
-			window.addEventListener( 'popstate', function(e) {
-				if (e.state && e.state['oldPage']) {
-					hotSwap(e.state['oldPage'], false);
-				}
-			});
-		}, 0);
-	});
-
 	window['statsSource'] = new EventSource("/api/live_stats");
 
 	window['statsSource'].addEventListener('message', function (e) {
@@ -299,10 +161,8 @@ $(function() {
 
 	$.getJSON('/api/pool_stats', function(data){
 		statData = data;
-		if ( currentPage === 'stats' ) {
-			buildChartData();
-			displayCharts();
-		}
+		buildChartData();
+		displayCharts();
 	});
 
 	window['statsSource'].addEventListener('message', function(e){
@@ -318,10 +178,8 @@ $(function() {
 		})();
 
 		if (newPoolAdded || Object.keys(stats['pools']).length > poolKeys.length){
-			if ( currentPage === 'stats' ) {
-				buildChartData();
-				displayCharts();
-			}
+			buildChartData();
+			displayCharts();
 		}
 		else {
 			var time = stats['time'] * 1000;

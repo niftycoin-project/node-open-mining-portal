@@ -35,20 +35,21 @@
         "debug": "nodemon init.js"
     },
     "dependencies": {
-        "async": "1.5.2",
+        "amp-toolbox-cors": "^1.2.0-alpha.2",
+        "async": "^3.2.0",
         "body-parser": "*",
         "colors": "*",
         "compression": "*",
-        "dateformat": "1.0.12",
+        "dateformat": "^4.5.1",
         "dot": "*",
         "express": "*",
         "extend": "*",
         "mysql": "*",
         "node-json-minify": "*",
-        "node-watch": "0.5.9",
+        "node-watch": "^0.7.1",
         "nonce": "*",
-        "redis": "0.12.1",
-        "request": "2.69.0"
+        "redis": "^3.1.2",
+        "request": "^2.88.2"
     },
     "engines": {
         "node": ">=0.10"
