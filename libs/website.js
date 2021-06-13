@@ -12,8 +12,9 @@ var bodyParser = require('body-parser');
 var compress = require('compression');
 var ampCors = require('amp-toolbox-cors');
 
-// var Stratum = require('stratum-pool');
-// var util = require('stratum-pool/lib/util.js');
+var Stratum = require('stratum-pool');
+var util = require('stratum-pool/lib/util.js');
+/*
 function DaemonInterface(daemons, logger) {
     
     var _this = this;
@@ -26,6 +27,7 @@ const Stratum = {
     daemon: {}
 };
 Stratum.daemon.interface = DaemonInterface;
+*/
 
 var api = require('./api.js');
 

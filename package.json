@@ -12,9 +12,9 @@
         "litecoin",
         "scrypt"
     ],
-    "homepage": "https://github.com/zone117x/node-open-mining-portal",
+    "homepage": "https://github.com/niftycoin-project/node-open-mining-portal",
     "bugs": {
-        "url": "https://github.com/zone117x/node-open-mining-portal/issues"
+        "url": "https://github.com/niftycoin-project/node-open-mining-portal/issues"
     },
     "license": "GPL-2.0",
     "author": "Matthew Little",
@@ -28,7 +28,7 @@
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/zone117x/node-open-mining-portal.git"
+        "url": "https://github.com/niftycoin-project/node-open-mining-portal.git"
     },
     "scripts": {
         "dev": "node init.js",
@@ -37,9 +37,11 @@
     "dependencies": {
         "amp-toolbox-cors": "^1.2.0-alpha.2",
         "async": "^3.2.0",
+        "bignum": "0.13.1",
         "body-parser": "*",
         "colors": "*",
         "compression": "*",
+        "stratum-pool": "git://github.com/niftycoin-project/node-stratum-pool.git",
         "dateformat": "^4.5.1",
         "dot": "*",
         "express": "*",
@@ -52,7 +54,7 @@
         "request": "^2.88.2"
     },
     "engines": {
-        "node": ">=0.10"
+        "node": ">=12.14.1"
     },
     "devDependencies": {
         "nodemon": "^2.0.7"
