@@ -98,6 +98,8 @@ function SetupForPool(logger, poolOptions, setupFinished){
                     return;
                 }
                 try {
+                    logger.warning(logSystem, logComponent, 'getbalance: ' + JSON.stringify(result.response));
+
                     var d = result.data.split('result":')[1].split(',')[0].split('.')[1];
                     magnitude = parseInt('10' + new Array(d.length).join('0'));
                     minPaymentSatoshis = parseInt(processingConfig.minimumPayment * magnitude);
@@ -367,14 +369,23 @@ function SetupForPool(logger, poolOptions, setupFinished){
              */
             function(workers, rounds, addressAccount, callback) {
 
+                // PIN, added tries
+                var tries = 0;
+
                 var trySend = function (withholdPercent) {
+
                     var addressAmounts = {};
                     var totalSent = 0;
+
+                    // PIN - track attempts made, calls to trySend...
+                    tries++;
+
                     for (var w in workers) {
                         var worker = workers[w];
                         worker.balance = worker.balance || 0;
                         worker.reward = worker.reward || 0;
                         var toSend = (worker.balance + worker.reward) * (1 - withholdPercent);
+
                         if (toSend >= minPaymentSatoshis) {
                             totalSent += toSend;
                             var address = worker.address = (worker.address || getProperAddress(w));
@@ -392,18 +403,65 @@ function SetupForPool(logger, poolOptions, setupFinished){
                         return;
                     }
 
-                    daemon.cmd('sendmany', [addressAccount || '', addressAmounts], function (result) {
-                        //Check if payments failed because wallet doesn't have enough coins to pay for tx fees
+                    // PIN - perform the sendmany operation ...
+                    var rpccallTracking = 'sendmany "" '+JSON.stringify(addressAmounts);
+                    //logger.warning(logSystem, logComponent, rpccallTracking);
+
+                    // PIN - fixed sendmany to use "", added tries and a lot of error checking
+                    daemon.cmd('sendmany', ["", addressAmounts], function (result) {
+
+                        // check for failed payments, there are many reasons  
                         if (result.error && result.error.code === -6) {
-                            var higherPercent = withholdPercent + 0.01;
-                            logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
-                                + (higherPercent * 100) + '% and retrying');
-                            trySend(higherPercent);
+
+                            // check if it is because we don't have enough funds
+                            if (result.error.message && result.error.message.includes("insufficient funds")) {
+                                // only try up to XX times (Max, 0.5%)
+                                if (tries < 5) {
+                                    // we thought we had enough funds to send payments, but apparently not...
+                                    // try decreasing payments by a small percent to cover unexpected tx fees?
+
+                                    var higherPercent = withholdPercent + 0.01;
+                                    logger.warning(logSystem, logComponent, 'Not enough funds to cover the tx fees for sending out payments, decreasing rewards by '
+                                      + (higherPercent * 100) + '% and retrying');
+                                     trySend(higherPercent);
+                                } else {
+                                    logger.warning(logSystem, logComponent, rpccallTracking);
+                                    logger.error(logSystem, logComponent, "Error sending payments, decreased rewards by too much!!!");
+                                    callback(true);
+                                }
+                            } else {
+                                // there was some fatal payment error?
+                                logger.warning(logSystem, logComponent, rpccallTracking);
+                                logger.error(logSystem, logComponent, 'Error sending payments ' + JSON.stringify(result.error));
+                                // payment failed, prevent updates to redis
+                                callback(true);
+                            }
+                            return;
+
                         }
-                        else if (result.error) {
-                            logger.error(logSystem, logComponent, 'Error trying to send payments with RPC sendmany '
-                                + JSON.stringify(result.error));
+                        else if (result.error && result.error.code === -5) {
+                            // invalid address specified in addressAmounts array
+                            logger.warning(logSystem, logComponent, rpccallTracking);
+                            logger.error(logSystem, logComponent, 'Error sending payments ' + JSON.stringify(result.error));
+                            // payment failed, prevent updates to redis
                             callback(true);
+                            return;
+                        }
+                        else if (result.error && result.error.message != null) {
+                            // invalid amount, others?
+                            logger.warning(logSystem, logComponent, rpccallTracking);
+                            logger.error(logSystem, logComponent, 'Error sending payments ' + JSON.stringify(result.error));
+                            // payment failed, prevent updates to redis
+                            callback(true);
+                            return;
+                        }
+
+                        else if (result.error) {
+                           // unknown error
+                            logger.error(logSystem, logComponent, 'Error sending payments ' + JSON.stringify(result.error));
+                            // payment failed, prevent updates to redis
+                            callback(true);
+                            return;
                         }
                         else {
                             logger.debug(logSystem, logComponent, 'Sent out a total of ' + (totalSent / magnitude)
