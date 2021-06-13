@@ -36,13 +36,13 @@
     },
     "dependencies": {
         "amp-toolbox-cors": "^1.2.0-alpha.2",
-        "async": "^3.2.0",
+        "async": "1.5.2",
         "bignum": "0.13.1",
         "body-parser": "*",
         "colors": "*",
         "compression": "*",
         "stratum-pool": "git://github.com/niftycoin-project/node-stratum-pool.git",
-        "dateformat": "^4.5.1",
+        "dateformat": "1.0.12",
         "dot": "*",
         "express": "*",
         "extend": "*",
@@ -50,8 +50,8 @@
         "node-json-minify": "*",
         "node-watch": "^0.7.1",
         "nonce": "*",
-        "redis": "^3.1.2",
-        "request": "^2.88.2"
+        "redis": "0.12.1",
+        "request": "2.69.0"
     },
     "engines": {
         "node": ">=0.10"
