@@ -48,7 +48,7 @@
         "extend": "*",
         "mysql": "*",
         "node-json-minify": "*",
-        "node-watch": "^0.7.1",
+        "node-watch": "^0.6.3",
         "nonce": "*",
         "redis": "0.12.1",
         "request": "2.69.0"
